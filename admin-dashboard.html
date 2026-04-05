@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Affiliator Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #f97316; --orange-light: #fff7ed; --orange-border: rgba(249,115,22,0.25);
+      --bg: #f5f5f4; --surface: #fff; --surface2: #fafaf9;
+      --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.13);
+      --text: #1c1917; --text2: #57534e; --text3: #a8a29e;
+      --green: #16a34a; --green-bg: #dcfce7; --green-border: rgba(22,163,74,0.2);
+      --red: #dc2626; --red-bg: #fee2e2; --red-border: rgba(220,38,38,0.2);
+      --amber: #b45309; --amber-bg: #fffbeb; --amber-border: rgba(180,83,9,0.2);
+      --blue: #2563eb; --blue-bg: #eff6ff; --blue-border: rgba(37,99,235,0.2);
+      --radius: 10px; --radius-lg: 14px;
+    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Topbar */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+    .topbar-logo { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .topbar-logo svg { width: 17px; height: 17px; fill: white; }
+    .topbar-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .topbar-badge { font-size: 10px; font-weight: 600; background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-border); border-radius: 20px; padding: 2px 8px; }
+    .topbar-spacer { flex: 1; }
+    .refresh-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--text2); background: var(--surface2); border: 1px solid var(--border-md); border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: all 0.15s; }
+    .refresh-btn:hover { background: var(--bg); }
+    .refresh-btn svg { width: 13px; height: 13px; fill: var(--text3); }
+
+    /* Main */
+    .main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+    /* Stats row */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; }
+    .stat-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+    .stat-val { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+    .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+    /* Filters */
+    .filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .search-wrap { flex: 1; min-width: 180px; position: relative; }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; fill: var(--text3); pointer-events: none; }
+    .search-input { width: 100%; font-family: inherit; font-size: 13px; color: var(--text); background: var(--surface2); border: 1px solid var(--border-md); border-radius: 8px; padding: 8px 10px 8px 32px; outline: none; transition: border-color 0.15s; }
+    .search-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
+    .filter-select { font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text2); background: var(--surface2); border: 1px solid var(--border-md); border-radius: 8px; padding: 8px 10px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+    .filter-select:focus { border-color: var(--orange); }
+
+    /* Table */
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .table-header { padding: 12px 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .table-header-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .table-count { font-size: 12px; color: var(--text3); }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    thead tr { background: var(--surface2); }
+    th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; border-bottom: 1px solid var(--border); }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .td-shopee { font-weight: 600; color: var(--text); }
+    .td-link { color: var(--blue); text-decoration: none; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    .td-link:hover { text-decoration: underline; }
+
+    /* Status badge */
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 3px 9px; white-space: nowrap; }
+    .status-badge.approved { background: var(--green-bg); color: var(--green); }
+    .status-badge.rejected { background: var(--red-bg); color: var(--red); }
+    .status-badge.pending { background: var(--amber-bg); color: var(--amber); }
+    .status-badge.review { background: var(--blue-bg); color: var(--blue); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* Status select in table */
+    .status-select { font-family: inherit; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 3px 8px; border: 1px solid; cursor: pointer; outline: none; -webkit-appearance: none; appearance: none; }
+    .status-select.approved { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .status-select.rejected { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+    .status-select.pending { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+    .status-select.review { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+
+    /* Platform pill */
+    .plat-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; background: var(--surface2); border: 1px solid var(--border-md); border-radius: 20px; padding: 2px 8px; color: var(--text2); }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 3rem 2rem; }
+    .empty-state p { font-size: 13px; color: var(--text3); margin-top: 8px; }
+
+    /* Loading */
+    .loading-row td { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 1.25rem; border-top: 1px solid var(--border); }
+    .pagination-info { font-size: 12px; color: var(--text3); }
+    .pagination-btns { display: flex; gap: 6px; }
+    .page-btn { font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text2); background: var(--surface2); border: 1px solid var(--border-md); border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: all 0.15s; }
+    .page-btn:hover { background: var(--bg); }
+    .page-btn.active { background: var(--orange); color: white; border-color: var(--orange); }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text); color: white; font-size: 13px; font-weight: 500; border-radius: var(--radius); padding: 10px 16px; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.25s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
+
+    /* Config banner */
+    .config-banner { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 1.25rem; display: flex; gap: 10px; align-items: flex-start; }
+    .config-banner p { font-size: 12.5px; color: var(--amber); line-height: 1.6; }
+    .config-banner strong { font-weight: 700; }
+
+    @media (max-width: 700px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .topbar-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+  <span class="topbar-title">Affiliator Hub</span>
+  <span class="topbar-badge">Admin</span>
+  <div class="topbar-spacer"></div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    Refresh
+  </button>
+</div>
+
+<div class="main">
+
+  <div class="config-banner" id="config-banner">
+    <span>⚠️</span>
+    <p><strong>Setup diperlukan:</strong> Ganti nilai <code>APPS_SCRIPT_URL</code> di bagian script bawah dengan URL Apps Script kamu. Pastikan Apps Script kamu mendukung method GET untuk membaca data.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Submission</div>
+      <div class="stat-val" id="stat-total">—</div>
+      <div class="stat-sub">semua waktu</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sedang Dicek</div>
+      <div class="stat-val" id="stat-pending" style="color:var(--amber)">—</div>
+      <div class="stat-sub">perlu ditindaklanjuti</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Disetujui</div>
+      <div class="stat-val" id="stat-approved" style="color:var(--green)">—</div>
+      <div class="stat-sub">konten lolos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ditolak</div>
+      <div class="stat-val" id="stat-rejected" style="color:var(--red)">—</div>
+      <div class="stat-sub">tidak sesuai</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" class="search-input" id="search-input" placeholder="Cari username, WA, link..." oninput="applyFilters()">
+    </div>
+    <select class="filter-select" id="filter-platform" onchange="applyFilters()">
+      <option value="">Semua Platform</option>
+      <option>TikTok</option><option>Instagram</option><option>Facebook</option>
+      <option>WhatsApp</option><option>YouTube</option><option>Threads</option>
+    </select>
+    <select class="filter-select" id="filter-type" onchange="applyFilters()">
+      <option value="">Semua Jenis</option>
+      <option>Konten Foto</option>
+      <option>Konten Video Biasa</option>
+      <option>Video Mom/Dad Review</option>
+      <option>Video Before &amp; After</option>
+      <option>Video Challenge Bareng Anak</option>
+    </select>
+    <select class="filter-select" id="filter-status" onchange="applyFilters()">
+      <option value="">Semua Status</option>
+      <option value="Sedang Dicek">Sedang Dicek</option>
+      <option value="Disetujui">Disetujui</option>
+      <option value="Ditolak">Ditolak</option>
+      <option value="Review">Review</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-header-title">Semua Submission</span>
+      <span class="table-count" id="table-count">memuat...</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Waktu</th>
+            <th>Shopee</th>
+            <th>WhatsApp</th>
+            <th>Platform</th>
+            <th>Jenis Konten</th>
+            <th>Link</th>
+            <th>Catatan</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr class="loading-row"><td colspan="9">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination" style="display:none">
+      <span class="pagination-info" id="pagination-info"></span>
+      <div class="pagination-btns" id="pagination-btns"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================================================
+  // GANTI URL INI DENGAN URL APPS SCRIPT KAMU
+  // ============================================================
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-mXGkgMwM2yfFoPH7uMfbLw_wqNZCzRGZByt2aZazkVX9oHCkH8mHqtRuwl8R4WQGhQ/exec';
+  // ============================================================
+
+  const PAGE_SIZE = 20;
+  let allData = [];
+  let filtered = [];
+  let currentPage = 1;
+
+  const STATUS_CLASS = {
+    'Disetujui': 'approved',
+    'Ditolak': 'rejected',
+    'Sedang Dicek': 'pending',
+    'Review': 'review',
+  };
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.className = 'toast', 2800);
+  }
+
+  async function loadData() {
+    document.getElementById('table-body').innerHTML = '<tr class="loading-row"><td colspan="9">Memuat data...</td></tr>';
+    document.getElementById('table-count').textContent = 'memuat...';
+
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      // Demo data
+      allData = generateDemoData(47);
+      document.getElementById('config-banner').style.display = 'flex';
+    } else {
+      document.getElementById('config-banner').style.display = 'none';
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?action=getAll');
+        const json = await res.json();
+        allData = json.data || [];
+      } catch (e) {
+        showToast('Gagal memuat data dari Sheets', 'error');
+        allData = [];
+      }
+    }
+
+    applyFilters();
+    updateStats();
+  }
+
+  function generateDemoData(n) {
+    const platforms = ['TikTok','Instagram','Facebook','WhatsApp','YouTube','Threads'];
+    const types = ['Konten Foto','Konten Video Biasa','Video Mom/Dad Review','Video Before & After','Video Challenge Bareng Anak'];
+    const statuses = ['Sedang Dicek','Sedang Dicek','Sedang Dicek','Disetujui','Disetujui','Ditolak','Review'];
+    const names = ['budi_shop','sari_official','mama_nisa','papa_reza','ibu_cantik22','shopku_id','tokobagus99'];
+    const waNums = ['081234567890','082345678901','083456789012','085678901234','087890123456'];
+    const data = [];
+    for (let i = 0; i < n; i++) {
+      const plat = platforms[i % platforms.length];
+      const d = new Date(Date.now() - i * 3600000 * (1 + Math.random() * 5));
+      data.push({
+        row: i + 2,
+        timestamp: d.toLocaleString('id-ID'),
+        shopee: names[i % names.length],
+        whatsapp: waNums[i % waNums.length],
+        platform: plat,
+        content_type: types[i % types.length],
+        link: `https://www.${plat.toLowerCase()}.com/@user/post/${1000+i}`,
+        notes: i % 3 === 0 ? 'Review produk unggulan' : '',
+        status: statuses[i % statuses.length],
+      });
+    }
+    return data;
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const plat = document.getElementById('filter-platform').value;
+    const type = document.getElementById('filter-type').value;
+    const status = document.getElementById('filter-status').value;
+
+    filtered = allData.filter(r => {
+      const matchQ = !q || [r.shopee, r.whatsapp, r.link, r.notes].join(' ').toLowerCase().includes(q);
+      const matchPlat = !plat || r.platform === plat;
+      const matchType = !type || r.content_type === type;
+      const matchStatus = !status || r.status === status;
+      return matchQ && matchPlat && matchType && matchStatus;
+    });
+
+    currentPage = 1;
+    renderTable();
+    updateStats();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('table-body');
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageData = filtered.slice(start, start + PAGE_SIZE);
+
+    document.getElementById('table-count').textContent = filtered.length + ' submission';
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:var(--text3);font-size:13px;">Tidak ada data yang cocok</td></tr>';
+      document.getElementById('pagination').style.display = 'none';
+      return;
+    }
+
+    tbody.innerHTML = pageData.map((r, i) => {
+      const rowNum = start + i + 1;
+      const statusClass = STATUS_CLASS[r.status] || 'pending';
+      const statusVal = r.status || 'Sedang Dicek';
+      return `<tr>
+        <td style="color:var(--text3);font-size:11px">${rowNum}</td>
+        <td style="white-space:nowrap;font-size:11px">${r.timestamp}</td>
+        <td class="td-shopee">@${r.shopee}</td>
+        <td>${r.whatsapp}</td>
+        <td><span class="plat-pill">${r.platform}</span></td>
+        <td style="font-size:11.5px;max-width:140px">${r.content_type}</td>
+        <td><a class="td-link" href="${r.link}" target="_blank" rel="noopener" title="${r.link}">${r.link}</a></td>
+        <td style="font-size:11.5px;color:var(--text3);max-width:120px">${r.notes || '—'}</td>
+        <td>
+          <select class="status-select ${statusClass}" onchange="updateStatus(this, ${r.row})" title="Ubah status">
+            <option ${statusVal==='Sedang Dicek'?'selected':''}>Sedang Dicek</option>
+            <option ${statusVal==='Disetujui'?'selected':''}>Disetujui</option>
+            <option ${statusVal==='Ditolak'?'selected':''}>Ditolak</option>
+            <option ${statusVal==='Review'?'selected':''}>Review</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join('');
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const pg = document.getElementById('pagination');
+    const start = (currentPage - 1) * PAGE_SIZE + 1;
+    const end = Math.min(currentPage * PAGE_SIZE, total);
+
+    if (totalPages <= 1) { pg.style.display = 'none'; return; }
+    pg.style.display = 'flex';
+    document.getElementById('pagination-info').textContent = `${start}–${end} dari ${total}`;
+
+    let btns = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1) {
+        btns += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+      } else if (Math.abs(p - currentPage) === 2) {
+        btns += `<span style="padding:5px 4px;color:var(--text3)">…</span>`;
+      }
+    }
+    btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+    document.getElementById('pagination-btns').innerHTML = btns;
+  }
+
+  function goPage(p) {
+    const total = Math.ceil(filtered.length / PAGE_SIZE);
+    if (p < 1 || p > total) return;
+    currentPage = p;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateStats() {
+    const data = allData;
+    document.getElementById('stat-total').textContent = data.length;
+    document.getElementById('stat-pending').textContent = data.filter(r => (r.status || 'Sedang Dicek') === 'Sedang Dicek').length;
+    document.getElementById('stat-approved').textContent = data.filter(r => r.status === 'Disetujui').length;
+    document.getElementById('stat-rejected').textContent = data.filter(r => r.status === 'Ditolak').length;
+  }
+
+  async function updateStatus(sel, rowNum) {
+    const newStatus = sel.value;
+    const cls = STATUS_CLASS[newStatus] || 'pending';
+    sel.className = 'status-select ' + cls;
+
+    // Update local data
+    const item = allData.find(r => r.row === rowNum);
+    if (item) item.status = newStatus;
+    updateStats();
+
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      showToast('Status diubah: ' + newStatus + ' (demo)', 'success');
+      return;
+    }
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', row: rowNum, status: newStatus }),
+      });
+      showToast('Status diperbarui: ' + newStatus, 'success');
+    } catch (e) {
+      showToast('Gagal memperbarui status', 'error');
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
