@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cek Status Konten — Affiliator Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #f97316; --orange-hover: #ea6c0a; --orange-light: #fff7ed; --orange-ring: rgba(249,115,22,0.15);
+      --bg: #f5f5f4; --surface: #fff; --surface2: #fafaf9;
+      --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.14);
+      --text: #1c1917; --text2: #57534e; --text3: #a8a29e;
+      --green: #16a34a; --green-bg: #dcfce7; --green-border: rgba(22,163,74,0.2);
+      --red: #dc2626; --red-bg: #fee2e2; --red-border: rgba(220,38,38,0.2);
+      --amber: #b45309; --amber-bg: #fffbeb; --amber-border: rgba(180,83,9,0.2);
+      --blue: #2563eb; --blue-bg: #eff6ff; --blue-border: rgba(37,99,235,0.2);
+      --radius: 10px; --radius-lg: 14px;
+    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); padding: 2rem 1rem 4rem; }
+    .container { max-width: 520px; margin: 0 auto; }
+
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+    .logo { width: 42px; height: 42px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo svg { width: 22px; height: 22px; fill: white; }
+    .header-text h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+    .header-text p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 12px; }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+    .field input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface2); border: 1px solid var(--border-md); border-radius: var(--radius); padding: 10px 13px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .field input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-ring); }
+    .field input::placeholder { color: var(--text3); }
+
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+    .tab-btn { font-family: inherit; font-size: 13px; font-weight: 600; padding: 9px; border-radius: 8px; border: 1px solid var(--border-md); background: var(--surface2); color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .tab-btn.active { background: var(--orange-light); color: var(--orange); border-color: rgba(249,115,22,0.3); }
+
+    .search-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit; color: #fff; background: var(--orange); border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .search-btn:hover { background: var(--orange-hover); }
+    .search-btn:disabled { background: #d4cdc9; cursor: not-allowed; }
+
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.65s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #results { display: none; margin-top: 12px; }
+
+    .result-header { margin-bottom: 12px; }
+    .result-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .result-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    .summary-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; text-align: center; }
+    .sum-val { font-size: 22px; font-weight: 700; }
+    .sum-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+    .konten-cards { display: flex; flex-direction: column; gap: 10px; }
+    .konten-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .konten-card-top { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .kc-num { width: 22px; height: 22px; border-radius: 50%; background: var(--orange); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .kc-info { flex: 1; }
+    .kc-type { font-size: 13px; font-weight: 600; color: var(--text); }
+    .kc-plat { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 4px 10px; }
+    .status-badge.approved { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .status-badge.rejected { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .status-badge.pending { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .status-badge.review { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    .konten-card-body { padding: 12px 14px; }
+    .kc-link { font-size: 12px; color: var(--blue); word-break: break-all; text-decoration: none; }
+    .kc-link:hover { text-decoration: underline; }
+    .kc-time { font-size: 11px; color: var(--text3); margin-top: 6px; }
+    .kc-notes { font-size: 11.5px; color: var(--text2); margin-top: 6px; font-style: italic; background: var(--surface2); border-radius: 6px; padding: 6px 9px; }
+    .status-desc { font-size: 11.5px; line-height: 1.5; margin-top: 8px; padding: 8px 10px; border-radius: 8px; }
+    .status-desc.approved { background: var(--green-bg); color: var(--green); }
+    .status-desc.rejected { background: var(--red-bg); color: var(--red); }
+    .status-desc.pending { background: var(--amber-bg); color: var(--amber); }
+    .status-desc.review { background: var(--blue-bg); color: var(--blue); }
+
+    .not-found { text-align: center; padding: 2.5rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .not-found h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .not-found p { font-size: 13px; color: var(--text3); line-height: 1.6; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--orange); text-decoration: none; margin-top: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+
+    /* Hidden iframe for data fetch */
+    #fetch-frame { display: none; width: 0; height: 0; border: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Cek Status Konten</h1>
+      <p>Pantau status review konten kamu di sini</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button type="button" class="tab-btn active" onclick="switchTab('shopee', this)">Cari by Username Shopee</button>
+      <button type="button" class="tab-btn" onclick="switchTab('wa', this)">Cari by WhatsApp</button>
+    </div>
+
+    <div id="tab-shopee">
+      <div class="field">
+        <label>Username Shopee</label>
+        <input type="text" id="input-shopee" placeholder="contoh: budi_shop" autocomplete="username">
+      </div>
+    </div>
+
+    <div id="tab-wa" style="display:none">
+      <div class="field">
+        <label>Nomor WhatsApp</label>
+        <input type="tel" id="input-wa" placeholder="08xxxxxxxxxx">
+      </div>
+    </div>
+
+    <button class="search-btn" id="search-btn" onclick="doSearch()">
+      <span id="search-btn-text">Cek Status</span>
+      <div class="spinner" id="search-spinner"></div>
+    </button>
+  </div>
+
+  <div id="results"></div>
+  <a class="back-link" href="affiliator-hub.html">← Kembali ke Form Upload</a>
+
+</div>
+
+<!-- Hidden iframe untuk fetch data -->
+<iframe id="fetch-frame" title="fetch"></iframe>
+
+<script>
+  // ============================================================
+  // GANTI URL INI DENGAN URL APPS SCRIPT KAMU
+  // ============================================================
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-mXGkgMwM2yfFoPH7uMfbLw_wqNZCzRGZByt2aZazkVX9oHCkH8mHqtRuwl8R4WQGhQ/exec';
+  // ============================================================
+
+  let activeTab = 'shopee';
+  let pendingResolve = null;
+  let fetchTimeout = null;
+
+  // Expose global callback yang dipanggil oleh iframe
+  window.receiveData = function(result) {
+    clearTimeout(fetchTimeout);
+    if (pendingResolve) {
+      pendingResolve(result.data || []);
+      pendingResolve = null;
+    }
+  };
+
+  function switchTab(tab, btn) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-shopee').style.display = tab === 'shopee' ? 'block' : 'none';
+    document.getElementById('tab-wa').style.display = tab === 'wa' ? 'block' : 'none';
+    document.getElementById('results').style.display = 'none';
+  }
+
+  const STATUS_META = {
+    'Disetujui':    { cls: 'approved', desc: 'Konten kamu sudah disetujui! Terima kasih sudah upload konten yang sesuai.' },
+    'Ditolak':      { cls: 'rejected', desc: 'Konten ini tidak lolos review. Pastikan konten sesuai dengan kategori yang dipilih.' },
+    'Sedang Dicek': { cls: 'pending',  desc: 'Konten masih dalam proses review oleh tim kami. Mohon ditunggu.' },
+    'Review':       { cls: 'review',   desc: 'Konten sedang dalam tahap review lanjutan oleh tim.' },
+  };
+
+  function fetchData(val) {
+    return new Promise((resolve) => {
+      pendingResolve = resolve;
+
+      const param = activeTab === 'shopee'
+        ? 'shopee=' + encodeURIComponent(val.toLowerCase())
+        : 'wa=' + encodeURIComponent(val.toLowerCase());
+
+      // Buat halaman HTML mini yang fetch data lalu panggil parent.receiveData()
+      const proxyHTML = `<!DOCTYPE html><html><body><script>
+        fetch('${APPS_SCRIPT_URL}?action=getByUser&${param}', {
+          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => { window.parent.receiveData(data); })
+        .catch(() => { window.parent.receiveData({ data: [] }); });
+      <\/script></body></html>`;
+
+      const blob = new Blob([proxyHTML], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const frame = document.getElementById('fetch-frame');
+      frame.src = blobUrl;
+
+      // Timeout 10 detik
+      fetchTimeout = setTimeout(() => {
+        if (pendingResolve) {
+          pendingResolve([]);
+          pendingResolve = null;
+        }
+        URL.revokeObjectURL(blobUrl);
+      }, 10000);
+
+      frame.onload = function() {
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      };
+    });
+  }
+
+  async function doSearch() {
+    const val = activeTab === 'shopee'
+      ? document.getElementById('input-shopee').value.trim()
+      : document.getElementById('input-wa').value.trim();
+
+    if (!val) {
+      document.getElementById(activeTab === 'shopee' ? 'input-shopee' : 'input-wa').focus();
+      return;
+    }
+
+    const btn = document.getElementById('search-btn');
+    const txt = document.getElementById('search-btn-text');
+    const spin = document.getElementById('search-spinner');
+    btn.disabled = true; txt.style.display = 'none'; spin.style.display = 'block';
+
+    const data = await fetchData(val);
+
+    btn.disabled = false; txt.style.display = 'block'; spin.style.display = 'none';
+    renderResults(data, val);
+  }
+
+  function renderResults(data, query) {
+    const box = document.getElementById('results');
+    box.style.display = 'block';
+
+    if (!data || data.length === 0) {
+      box.innerHTML = `<div class="not-found">
+        <h3>Data tidak ditemukan</h3>
+        <p>Tidak ada konten yang terdaftar dengan ${activeTab === 'shopee' ? 'username Shopee' : 'nomor WhatsApp'} "<strong>${query}</strong>".<br>Pastikan kamu sudah mengisi form laporan konten.</p>
+      </div>`;
+      return;
+    }
+
+    const approved = data.filter(d => d.status === 'Disetujui').length;
+    const rejected = data.filter(d => d.status === 'Ditolak').length;
+    const pending  = data.filter(d => !d.status || d.status === 'Sedang Dicek').length;
+
+    const cards = data.map((d, i) => {
+      const s = STATUS_META[d.status] || STATUS_META['Sedang Dicek'];
+      return `<div class="konten-card">
+        <div class="konten-card-top">
+          <div class="kc-num">${i+1}</div>
+          <div class="kc-info">
+            <div class="kc-type">${d.content_type || ''}</div>
+            <div class="kc-plat">${d.platform || ''}</div>
+          </div>
+          <span class="status-badge ${s.cls}"><span class="status-dot"></span>${d.status || 'Sedang Dicek'}</span>
+        </div>
+        <div class="konten-card-body">
+          <a class="kc-link" href="${d.link}" target="_blank" rel="noopener">${d.link}</a>
+          ${d.notes ? `<div class="kc-notes">"${d.notes}"</div>` : ''}
+          <div class="status-desc ${s.cls}">${s.desc}</div>
+          <div class="kc-time">Dikirim: ${d.timestamp}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="result-header">
+        <div class="result-title">@${data[0].shopee || query}</div>
+        <div class="result-sub">${data.length} konten ditemukan</div>
+      </div>
+      <div class="summary-strip">
+        <div class="sum-card"><div class="sum-val" style="color:var(--green)">${approved}</div><div class="sum-label">Disetujui</div></div>
+        <div class="sum-card"><div class="sum-val" style="color:var(--amber)">${pending}</div><div class="sum-label">Dicek</div></div>
+        <div class="sum-card"><div class="sum-val" style="color:var(--red)">${rejected}</div><div class="sum-label">Ditolak</div></div>
+      </div>
+      <div class="konten-cards">${cards}</div>`;
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+</script>
+</body>
+</html>
